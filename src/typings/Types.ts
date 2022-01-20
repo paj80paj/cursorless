@@ -375,6 +375,7 @@ export type ActionType =
   | "findInWorkspace"
   | "foldRegion"
   | "followLink"
+  | "generateSnippet"
   | "getText"
   | "indentLine"
   | "insertCopyAfter"
