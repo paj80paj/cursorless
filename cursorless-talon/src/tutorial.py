@@ -1,51 +1,40 @@
 import json
+from pathlib import Path
 import re
 from typing import Callable
+import yaml
 
-from talon import actions, app, registry
-from .actions.actions import ACTION_LIST_NAMES
-from .modifiers.containing_scope import SCOPE_LIST_NAMES
-from .conventions import get_cursorless_list_name
+from talon import actions, app
+from .cursorless_command_to_spoken_form import lookup_action, lookup_scope_type, cursorless_command_to_spoken_form
 
 regex = re.compile(r"\{(\w+):([^}]+)\}")
-
-
-def not_implemented(argument: str):
-    raise NotImplementedError()
+tutorial_dir = Path("/Users/pokey/src/cursorless-vscode/src/test/suite/fixtures/recorded/tutorial/unit-2-basic-coding")
 
 
 def process_literal_step(argument: str):
     return f"<cmd@{argument}/>"
 
 
-def make_cursorless_list_reverse_look_up(*raw_list_names: str):
-    return make_list_reverse_look_up(
-        *[get_cursorless_list_name(raw_list_name) for raw_list_name in raw_list_names]
-    )
+def process_action(argument: str):
+    _, spoken_form = lookup_action(argument)
+    return f'<*"{spoken_form}"/>'
 
 
-def make_list_reverse_look_up(*list_names: str):
-    """
-    Given a list of talon list names, returns a function that does a reverse
-    look-up in all lists to find the spoken form for its input.
-    """
+def process_scope_type(argument: str):
+    _, spoken_form = lookup_scope_type(argument)
+    return f'<*"{spoken_form}"/>'
 
-    def return_func(argument: str):
-        for list_name in list_names:
-            for spoken_form, value in registry.lists[list_name][-1].items():
-                if value == argument:
-                    return f'<*"{spoken_form}"/>'
 
-        raise LookupError(f"Unknown identifier `{argument}`")
-
-    return return_func
+def process_cursorless_command_step(argument: str):
+    step_fixture = yaml.safe_load((tutorial_dir/argument).read_text())
+    return f"<cmd@{cursorless_command_to_spoken_form(step_fixture['command'])}/>"
 
 
 interpolation_processor_map: dict[str, Callable[[str], str]] = {
     "literalStep": process_literal_step,
-    "action": make_cursorless_list_reverse_look_up(*ACTION_LIST_NAMES),
-    "scopeType": make_cursorless_list_reverse_look_up(*SCOPE_LIST_NAMES),
-    "step": lambda name: name,
+    "action": process_action,
+    "scopeType": process_scope_type,
+    "step": process_cursorless_command_step,
 }
 
 
@@ -71,7 +60,7 @@ def process_tutorial_step(raw: str):
 
 def get_basic_coding_walkthrough():
     with open(
-        "/Users/pokey/src/cursorless-vscode/src/test/suite/fixtures/recorded/tutorial/unit-2-basic-coding/script.json"
+        tutorial_dir / "script.json"
     ) as f:
         script = json.load(f)
 
