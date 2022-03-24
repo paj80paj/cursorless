@@ -1,13 +1,15 @@
-from talon import Module, ui, skia, actions, cron
-from talon.canvas import Canvas
-import webbrowser
+import json
 import math
+import webbrowser
+from pathlib import Path
 
-from .sections.actions import get_actions
-from .sections.scopes import get_scopes
-from .sections.compound_targets import get_compound_targets
+from talon import Module, actions, cron, skia, ui
+from talon.canvas import Canvas
 
 from .get_list import get_list, get_lists
+from .sections.actions import get_actions
+from .sections.compound_targets import get_compound_targets
+from .sections.scopes import get_scopes
 
 mod = Module()
 mod.mode("cursorless_cheat_sheet", "Mode for showing cursorless cheat sheet gui")
@@ -294,14 +296,50 @@ class CheatSheet:
 class Actions:
     def cursorless_cheat_sheet_toggle():
         """Toggle cursorless cheat sheet"""
-        global cheat_sheet
-        if cheat_sheet:
-            actions.mode.disable("user.cursorless_cheat_sheet")
-            cheat_sheet.close()
-            cheat_sheet = None
-        else:
-            cheat_sheet = CheatSheet()
-            actions.mode.enable("user.cursorless_cheat_sheet")
+        actions.user.vscode_with_plugin(
+            "cursorless.showCheatsheet", actions.user.cursorless_cheat_sheet_get_json()
+        )
+
+    def cursorless_cheat_sheet_get_json():
+        """Get cursorless cheat sheet json"""
+        return {
+            "sections": [
+                {
+                    "name": "Actions",
+                    "items": get_actions(),
+                },
+                {
+                    "name": "Scopes",
+                    "items": get_scopes(),
+                },
+                {
+                    "name": "Paired delimiters",
+                    "items": get_lists(
+                        [
+                            "wrapper_only_paired_delimiter",
+                            "wrapper_selectable_paired_delimiter",
+                            "selectable_only_paired_delimiter",
+                        ]
+                    ),
+                },
+                {
+                    "name": "Special marks",
+                    "items": get_list("special_mark"),
+                },
+                {
+                    "name": "Positions",
+                    "items": get_list("position"),
+                },
+                {
+                    "name": "Colors",
+                    "items": get_list("hat_color"),
+                },
+                {
+                    "name": "Shapes",
+                    "items": get_list("hat_shape"),
+                },
+            ]
+        }
 
     def cursorless_open_instructions():
         """Open web page with cursorless instructions"""

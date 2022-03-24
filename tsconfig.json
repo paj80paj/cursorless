@@ -18,6 +18,7 @@
 		"node_modules",
 		"src/vendor",
 		".vscode-test",
-        "data"
+		"data",
+		"cheatsheet"
 	]
 }
