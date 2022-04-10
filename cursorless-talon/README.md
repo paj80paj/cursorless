@@ -27,3 +27,5 @@ We're really glad to have you here! A bit of housekeeping, first, though. If you
 # Cursorless talon
 
 This directory contains the talon side of [Cursorless](https://marketplace.visualstudio.com/items?itemName=pokey.cursorless).
+
+The quick brown fox jumps over the lazy dog
